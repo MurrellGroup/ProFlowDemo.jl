@@ -45,7 +45,7 @@ function flowX1predictor(X0, b, model; d = identity)
     function m(t, Xt)
         print(".")
         f, aalogits = model(d(t .+ zeros(Float32, 1, batch_dim)), d(Xt), d(b.chainids), d(b.resinds), sc_frames = f)
-        return f.composed.outer.values, ManifoldState(rotM, eachslice(f.composed.inner.values, dims=(3,4))), softmax(aalogits)
+        return cpu(f.composed.outer.values), ManifoldState(rotM, eachslice(cpu(f.composed.inner.values), dims=(3,4))), cpu(softmax(aalogits))
     end
     return m
 end
