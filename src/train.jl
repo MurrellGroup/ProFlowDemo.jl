@@ -1,22 +1,30 @@
+#A minimal training script:
 using Pkg
+pkg"registry add https://github.com/MurrellGroup/MurrellGroupRegistry"
 Pkg.activate(".")
-using Revise
+
+Pkg.add(["JLD2", "Flux", "CannotWaitForTheseOptimisers", "LearningSchedules", "DLProteinFormats"])
+Pkg.add(["CUDA", "cuDNN"]) #<- If GPU
 Pkg.develop(path="../")
 
-using ProFlowDemo, DLProteinFormats, InvariantPointAttention, Onion, Flux, CannotWaitForTheseOptimisers
-using DLProteinFormats: PDBSimpleFlat500, batch_flatrecs, sample_batched_inds
+using ProFlowDemo, DLProteinFormats, Flux, CannotWaitForTheseOptimisers, LearningSchedules, JLD2
+using DLProteinFormats: load, PDBSimpleFlat, batch_flatrecs, sample_batched_inds, length2batch
 
-dat = DLProteinFormats.load(DLProteinFormats.PDBSimpleFlat);
+using CUDA        #<- If GPU
+device = gpu      #<- If GPU
+#device = identity #<- if no GPU
 
-model = FlowcoderSC(384, 6, 6)
+dat = load(PDBSimpleFlat);
+
+model = FlowcoderSC(384, 6, 6) |> device
 sched = burnin_learning_schedule(0.000005f0, 0.001f0, 1.05f0, 0.99995f0)
 opt_state = Flux.setup(Muon(eta = sched.lr), model)
 
-for epoch in 1:10
-    batchinds = sample_batched_inds(dat)
+for epoch in 1:100
+    batchinds = sample_batched_inds(dat,l2b = length2batch(1250, 1.9)) #<- For a 48gb GPU
     for (i, b) in enumerate(batchinds)
         bat = batch_flatrecs(dat[b])
-        ts = training_sample(bat)
+        ts = training_sample(bat) |> device
         sc_frames = nothing
         if rand() < 0.5
             sc_frames, _ = model(ts.t, ts.Xt, ts.chainids, ts.resinds)
