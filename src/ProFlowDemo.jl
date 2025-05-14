@@ -5,6 +5,7 @@ module ProFlowDemo
     include("flow.jl")
     include("model.jl")
 
+    chainids_from_lengths(lengths) = vcat([repeat([i],l) for (i,l) in enumerate(lengths)]...)
     gen2prot(samp, chainids, resnums) = DLProteinFormats.unflatten(tensor(samp[1]), tensor(samp[2]), tensor(samp[3]), clamp.(chainids, 0, 9), resnums)[1]
     export_pdb(path, samp, chainids, resnums) = ProteinChains.writepdb(path, gen2prot(samp, chainids, resnums))
 
