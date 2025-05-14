@@ -21,8 +21,6 @@ module ProFlowDemo
         return trajectory
     end
     
-    chainids_from_lengths(lengths) = vcat([repeat([i],l) for (i,l) in enumerate(lengths)]...)
-
     function dummy_batch(chain_lengths)
         chainid_vec = chainids_from_lengths(chain_lengths)
         L = length(chainid_vec)
