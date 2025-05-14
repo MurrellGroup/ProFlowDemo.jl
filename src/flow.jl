@@ -50,8 +50,8 @@ function flowX1predictor(X0, b, model; d = identity)
     return m
 end
 
-function flow_quickgen(b, model; steps = 100, d = identity)
+function flow_quickgen(b, model; steps = 100, d = identity, tracker = nothing)
     X0 = zero_state(b)
     X1pred = flowX1predictor(X0, b, model, d = d)
-    return gen(P, X0, X1pred, 0f0:1f0/steps:1f0)
+    return gen(P, X0, X1pred, 0f0:1f0/steps:1f0, tracker = tracker)
 end
