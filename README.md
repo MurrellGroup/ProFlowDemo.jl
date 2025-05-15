@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/MurrellGroup/ProFlowDemo.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MurrellGroup/ProFlowDemo.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/MurrellGroup/ProFlowDemo.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MurrellGroup/ProFlowDemo.jl)
 
-
+This repo implements a structure/sequence co-design model, using diffusion/flow matching (from [Flowfusion.jl](https://github.com/MurrellGroup/Flowfusion.jl) with an architecture based primarily on AlphaFold 2's Invariant Point Attention (here via [InvariantPointAttention.jl](https://github.com/MurrellGroup/InvariantPointAttention.jl)). The protein backbone is represented as a sequence of "frames", each with a location and rotation, as well as a discrete amino acid character. The model is trained to take noised input (where the locations, rotations, and discrete states have all been perturbed, to a random degree, by a noising process) and predict the original (ie. un-noised) protein structure. With a model thus trained, samples from the distribution of training structures can be sampled by taking many small steps from a random starting distribution.
 
 <video src="https://github.com/user-attachments/assets/4cef2445-d4e6-4d6c-9e50-1b99f79bb9a4" controls></video>
 
