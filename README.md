@@ -5,6 +5,10 @@
 [![Build Status](https://github.com/MurrellGroup/ProFlowDemo.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MurrellGroup/ProFlowDemo.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/MurrellGroup/ProFlowDemo.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MurrellGroup/ProFlowDemo.jl)
 
+
+
+<video src="https://github.com/user-attachments/assets/4cef2445-d4e6-4d6c-9e50-1b99f79bb9a4" controls></video>
+
 ## Quick start
 
 This will load up a model and generate a single small protein with two chains, each of length 20:
