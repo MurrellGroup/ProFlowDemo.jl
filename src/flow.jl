@@ -50,8 +50,17 @@ function flowX1predictor(X0, b, model; d = identity)
     return m
 end
 
-function flow_quickgen(b, model; steps = 100, d = identity, tracker = nothing)
+H(a; d = 2/3) = a<=d ? (a^2)/2 : d*(a - d/2)
+S(a) = H(a)/H(1)
+
+function flow_quickgen(b, model; steps = :default, d = identity, tracker = nothing)
+    stps = vcat(zeros(5),S.([0.0:0.00255:0.9975;]),[0.999, 0.9998, 1.0])
+    if steps isa Number
+        stps = 0f0:1f0/steps:1f0
+    elseif steps isa AbstractVector
+        stps = steps
+    end
     X0 = zero_state(b)
     X1pred = flowX1predictor(X0, b, model, d = d)
-    return gen(P, X0, X1pred, 0f0:1f0/steps:1f0, tracker = tracker)
+    return gen(P, X0, X1pred, Float32.(stps), tracker = tracker)
 end
