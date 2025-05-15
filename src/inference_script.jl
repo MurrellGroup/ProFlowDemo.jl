@@ -1,33 +1,38 @@
+#If you need the animations via GLMakie to run headless, in linux you can install xvfb, then run these in the terminal:
+#Xvfb :99 -screen 0 1024x768x24 &
+#export DISPLAY=:99
+#Then launch Julia and run this at the top:
+#get!(ENV, "DISPLAY", ":99")
+
 using Pkg
 pkg"registry add https://github.com/MurrellGroup/MurrellGroupRegistry"
 Pkg.activate(".")
-
-Pkg.add(["JLD2", "Flux"])
+Pkg.add(["JLD2", "Flux", "GLMakie", "ProtPlot"])
+Pkg.add(url = "https://github.com/MurrellGroup/ProFlowDemo.jl")
 Pkg.add(["CUDA", "cuDNN"]) #<- If GPU
-Pkg.develop(path="../")
 
-using ProFlowDemo, Flux, JLD2, Flowfusion
+using ProFlowDemo, JLD2, Flux
+using GLMakie, ProtPlot
 
-using CUDA #<- If GPU
-device = gpu #<- If GPU
-#device = identity #<- if no GPU
+#GPUnum = 0                              #<-To limit the run to one particular GPU
+#ENV["CUDA_VISIBLE_DEVICES"] = GPUnum    #<-To limit the run to one particular GPU
+using CUDA
+#device!(0)                              #<-To limit the run to one particular GPU
+device = gpu 
+#device = identity                       #<- If no GPU
 
-#Only need to run once:
-#run(`wget https://huggingface.co/MurrellLab/ProFlowDemo/resolve/main/ProFlowDemo_chkpt_3.jld2`)
+!("ProFlowDemo_chkpt_3.jld2" in readdir()) && run(`wget https://huggingface.co/MurrellLab/ProFlowDemo/resolve/main/ProFlowDemo_chkpt_3.jld2`)
+model_state = JLD2.load("ProFlowDemo_chkpt_3.jld2", "model_state");
+loadedmodel = FlowcoderSC(384, 6, 6);
+Flux.loadmodel!(loadedmodel, model_state);
+testmode!(loadedmodel);
+model = loadedmodel |> device;
 
-model_state = JLD2.load("ProFlowDemo_chkpt_3.jld2", "model_state")
-loadedmodel = FlowcoderSC(384, 6, 6)
-Flux.loadmodel!(loadedmodel, model_state)
-testmode!(loadedmodel)
-model = loadedmodel |> device
-
-for len in 100:100:500
-    b = dummy_batch(vcat(ones(Int,len), 2ones(Int,len), 3ones(Int,len)))
-    g = flow_quickgen(b, model, steps = 100, d = device)
-    export_pdb("test_$(len).pdb", g, b.chainids, b.resinds)
-    prot = gen2prot(g, b.chainids, b.resinds)
-    for i in 1:length(prot)
-        println(">seq$i")
-        println(prot[i].sequence)
-    end
-end
+chainlengths = [124,124] #<- The model's only input
+b = dummy_batch(chainlengths)
+paths = ProFlowDemo.Tracker()
+g = flow_quickgen(b, model, d = device, tracker = paths) #<- Model inference call
+id = join(string.(chainlengths),"_")*"-"*join(rand("0123456789ABCDEFG", 4))
+export_pdb("$(id).pdb", g, b.chainids, b.resinds) #<- Save PDB
+samp = gen2prot(g, b.chainids, b.resinds)
+animate_trajectory("$(id).mp4", samp, first_trajectory(paths), viewmode = :fit, size = (1280, 720), framerate = 25) #<- Animate design process
